@@ -1,3 +1,6 @@
+const puppeteer = require ("puppeteer");
+
+
 document.addEventListener("DOMContentLoaded", () => {
   function extrairDadosVariaveisFixas() {
       const variavelInicialPrimeiraTabela = "Resumo do Cálculo";
