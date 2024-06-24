@@ -1,161 +1,175 @@
-const puppeteer = require ("puppeteer");
+const puppeteer = require('puppeteer');
 
+async function extrairDadosVariaveisFixas(page) {
+    const variavelInicialPrimeiraTabela = "Resumo do Cálculo";
+    const variavelFinalPrimeiraTabela = "Percentual";
+    const variavelInicialSegundaTabela = "Descrição de Créditos ";
+    const variavelFinalSegundaTabela = "Critério de Cálculo e Fundamentação Legal";
+    const variavelInicialTerceiraTabela = "Líquido Devido ao Reclamante";
+    const variavelFinalTerceiraTabela = "1.";
 
-document.addEventListener("DOMContentLoaded", () => {
-  function extrairDadosVariaveisFixas() {
-      const variavelInicialPrimeiraTabela = "Resumo do Cálculo";
-      const variavelFinalPrimeiraTabela = "Percentual";
-      const variavelInicialSegundaTabela = "Descrição de Créditos ";
-      const variavelFinalSegundaTabela = "Critério de Cálculo e Fundamentação Legal";
-      const variavelInicialTerceiraTabela = "Líquido Devido ao Reclamante";
-      const variavelFinalTerceiraTabela = "1.";
-      let extrairPrimeiraTabela = false;
-      let extrairSegundaTabela = false;
-      let extrairTerceiraTabela = false;
-      const elementosTR = document.querySelectorAll('tr');
-      const dadosTabela1 = [];
-      const dadosTabela2 = [];
-      const dadosTabela3 = [];
+    let extrairPrimeiraTabela = false;
+    let extrairSegundaTabela = false;
+    let extrairTerceiraTabela = false;
 
-      elementosTR.forEach(elementoTR => {
-          const textoLinha = elementoTR.textContent.trim();
+    const dadosTabela1 = [];
+    const dadosTabela2 = [];
+    const dadosTabela3 = [];
 
-          if (textoLinha.includes(variavelInicialPrimeiraTabela)) {
-              extrairPrimeiraTabela = true;
-              return;
-          }
+    const elementosTR = await page.$$('tr');
 
-          if (textoLinha.includes(variavelFinalPrimeiraTabela)) {
-              extrairPrimeiraTabela = false;
-              return;
-          }
+    for (const elementoTR of elementosTR) {
+        const textoLinha = await page.evaluate(el => el.textContent.trim(), elementoTR);
 
-          if (extrairPrimeiraTabela) {
-              const elementosTD = elementoTR.querySelectorAll('td');
-              const linhaArray = [];
+        if (textoLinha.includes(variavelInicialPrimeiraTabela)) {
+            extrairPrimeiraTabela = true;
+            continue;
+        }
 
-              elementosTD.forEach(elementoTD => {
-                  const texto = elementoTD.textContent.trim();
-                  if (texto !== "") {
-                      linhaArray.push(texto);
-                  }
-              });
+        if (textoLinha.includes(variavelFinalPrimeiraTabela)) {
+            extrairPrimeiraTabela = false;
+            continue;
+        }
 
-              if (linhaArray.length > 0) {
-                  dadosTabela1.push(linhaArray);
-              }
-          }
+        if (extrairPrimeiraTabela) {
+            const elementosTD = await elementoTR.$$('td');
+            const linhaArray = [];
 
-          if (textoLinha.includes(variavelInicialSegundaTabela)) {
-              extrairSegundaTabela = true;
-              return;
-          }
+            for (const elementoTD of elementosTD) {
+                const texto = await page.evaluate(el => el.textContent.trim(), elementoTD);
+                if (texto !== "") {
+                    linhaArray.push(texto);
+                }
+            }
 
-          if (textoLinha.includes(variavelFinalSegundaTabela)) {
-              extrairSegundaTabela = false;
-              return;
-          }
+            if (linhaArray.length > 0) {
+                dadosTabela1.push(linhaArray);
+            }
+        }
 
-          if (extrairSegundaTabela) {
-              const elementosTD = elementoTR.querySelectorAll('td');
-              const linhaArray = [];
+        if (textoLinha.includes(variavelInicialSegundaTabela)) {
+            extrairSegundaTabela = true;
+            continue;
+        }
 
-              elementosTD.forEach(elementoTD => {
-                  const texto = elementoTD.textContent.trim();
-                  if (texto !== "" && !texto.includes("\n")) {
-                      linhaArray.push(texto);
-                  }
-              });
+        if (textoLinha.includes(variavelFinalSegundaTabela)) {
+            extrairSegundaTabela = false;
+            continue;
+        }
 
-              if (linhaArray.length > 0) {
-                  dadosTabela2.push(linhaArray);
-              }
-          }
+        if (extrairSegundaTabela) {
+            const elementosTD = await elementoTR.$$('td');
+            const linhaArray = [];
 
-          if (textoLinha.includes(variavelInicialTerceiraTabela)) {
-              extrairTerceiraTabela = true;
-              return;
-          }
+            for (const elementoTD of elementosTD) {
+                const texto = await page.evaluate(el => el.textContent.trim(), elementoTD);
+                if (texto !== "" && !texto.includes("\n")) {
+                    linhaArray.push(texto);
+                }
+            }
 
-          if (extrairTerceiraTabela) {
-              if (textoLinha.includes(variavelFinalTerceiraTabela)) {
-                  extrairTerceiraTabela = false;
-                  return;
-              }
+            if (linhaArray.length > 0) {
+                dadosTabela2.push(linhaArray);
+            }
+        }
 
-              const elementosTD = elementoTR.querySelectorAll('td');
-              const linhaArray = [];
+        if (textoLinha.includes(variavelInicialTerceiraTabela)) {
+            extrairTerceiraTabela = true;
+            continue;
+        }
 
-              elementosTD.forEach(elementoTD => {
-                  const texto = elementoTD.textContent.trim();
-                  if (texto !== "" && !texto.includes("\n")) {
-                      linhaArray.push(texto);
-                  }
-              });
+        if (extrairTerceiraTabela) {
+            if (textoLinha.includes(variavelFinalTerceiraTabela)) {
+                extrairTerceiraTabela = false;
+                continue;
+            }
 
-              if (linhaArray.length > 0) {
-                  dadosTabela3.push(linhaArray);
-              }
-          }
-      });
+            const elementosTD = await elementoTR.$$('td');
+            const linhaArray = [];
 
-      // Função para remover arrays duplicados da terceira tabela
-      const dadosTabela3SemDuplicados = dadosTabela3.filter((array, index) => {
-          const stringArray = JSON.stringify(array); // Converter array em string para comparação
-          // Verificar se esta string já existe em um índice anterior
-          return (
-              index === dadosTabela3.findIndex((arr) => {
-                  return JSON.stringify(arr) === stringArray;
-              })
-          );
-      });
+            for (const elementoTD of elementosTD) {
+                const texto = await page.evaluate(el => el.textContent.trim(), elementoTD);
+                if (texto !== "" && !texto.includes("\n")) {
+                    linhaArray.push(texto);
+                }
+            }
 
-      return { dadosTabela1, dadosTabela2, dadosTabela3: dadosTabela3SemDuplicados };
-  }
+            if (linhaArray.length > 0) {
+                dadosTabela3.push(linhaArray);
+            }
+        }
+    }
 
-  function processarBancoDeDados() {
-      let { dadosTabela1, dadosTabela2, dadosTabela3 } = extrairDadosVariaveisFixas();
+    const dadosTabela3SemDuplicados = dadosTabela3.filter((array, index) => {
+        const stringArray = JSON.stringify(array);
+        return (
+            index === dadosTabela3.findIndex((arr) => JSON.stringify(arr) === stringArray)
+        );
+    });
 
-      // Aplicar modificações na primeira tabela
-      dadosTabela1 = dadosTabela1.map((array, index) => {
-          if (index >= 6 && index < dadosTabela1.length - 2) {
-              return {
-                  descricao: array[0],
-                  valor: array[1],
-                  juros: array[2],
-                  total: array[3],
-              };
-          } else if (index >= dadosTabela1.length - 2) {
-              return {
-                  valor: array[0],
-                  juros: array[1],
-                  total: array[2],
-              };
-          }
-          return array;
-      });
+    return { dadosTabela1, dadosTabela2, dadosTabela3: dadosTabela3SemDuplicados };
+}
 
-      // Remover arrays duplicados e com \n da segunda tabela
-      const dadosTabela2Limpos = dadosTabela2.filter(array => !array.some(item => item.includes("\n")));
+function adicionarIndices(tabela, indices) {
+    return tabela.map((linha) => {
+        const objeto = {};
+        indices.forEach((indice, i) => {
+            objeto[indice] = linha[i] || '';
+        });
+        return objeto;
+    });
+}
 
-      // Separar os dois primeiros elementos dos dois últimos em cada array da segunda tabela
-      const parte1 = [];
-      const parte2 = [];
+async function processarBancoDeDados() {
+    const browser = await puppeteer.launch({ headless: false });
+    const page = await browser.newPage();
 
-      dadosTabela2Limpos.forEach(array => {
-          if (array.length >= 4) {
-              parte1.push(array.slice(0, 2));
-              parte2.push(array.slice(2));
-          }
-      });
+    await page.goto('file:///C:/Users/Envoy/Desktop/relatorio%20processo/Tabelas-JavaScript/código-completo/relatorio-processo123059.html'); // Substitua com a URL da página que deseja acessar
 
-      // Exibir os dados processados até a palavra "1." na terceira tabela
-      console.log("Dados Tabela 1:", dadosTabela1);
-      console.log("Dados Tabela 2 - Parte 1:", parte1);
-      console.log("Dados Tabela 2 - Parte 2:", parte2);
-      console.log("Dados Tabela 3 (sem duplicados):", dadosTabela3);
-  }
+    await page.waitForSelector('tr'); // Espera até que os elementos <tr> estejam presentes
 
-  // Chama a função para processar os dados
-  processarBancoDeDados();
-});
+    const { dadosTabela1, dadosTabela2, dadosTabela3 } = await extrairDadosVariaveisFixas(page);
+
+    const dadosTabela1Modificados = dadosTabela1.map((array, index) => {
+        if (index >= 6 && index < dadosTabela1.length - 2) {
+            return {
+                descricao: array[0],
+                valor: array[1],
+                juros: array[2],
+                total: array[3],
+            };
+        } else if (index >= dadosTabela1.length - 2) {
+            return {
+                valor: array[0],
+                juros: array[1],
+                total: array[2],
+            };
+        }
+        return array;
+    });
+
+    const dadosTabela2Limpos = dadosTabela2.filter(array => !array.some(item => item.includes("\n")));
+
+    const parte1 = [];
+    const parte2 = [];
+
+    dadosTabela2Limpos.forEach(array => {
+        if (array.length >= 4) {
+            parte1.push(array.slice(0, 2));
+            parte2.push(array.slice(2));
+        }
+    });
+
+    const parte1ComIndices = adicionarIndices(parte1, ['descricao', 'valor']);
+    const parte2ComIndices = adicionarIndices(parte2, ['descricao', 'valor']);
+    const dadosTabela3ComIndices = adicionarIndices(dadosTabela3, ['descricao', 'valor']);
+
+    console.log("Dados Tabela 1:", dadosTabela1Modificados);
+    console.log("Dados Tabela 2 - Parte 1:", parte1ComIndices);
+    console.log("Dados Tabela 2 - Parte 2:", parte2ComIndices);
+    console.log("Dados Tabela 3:", dadosTabela3ComIndices);
+
+    await browser.close();
+}
+
+processarBancoDeDados();
